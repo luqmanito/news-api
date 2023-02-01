@@ -1,26 +1,43 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Breadcrumb, Layout, Menu, theme } from 'antd';
+import "./style/app.css";
+const { Header, Content, Footer } = Layout;
 
-function App() {
+const App: React.FC = () => {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Layout className="layout">
+      <Header>
+        <div className="logo" />
+        <Menu
+          theme="dark"
+          mode="horizontal"
+          defaultSelectedKeys={['2']}
+          items={new Array(15).fill(null).map((_, index) => {
+            const key = index + 1;
+            return {
+              key,
+              label: `nav ${key}`,
+            };
+          })}
+        />
+      </Header>
+      <Content style={{ padding: '0 50px' }}>
+        <Breadcrumb style={{ margin: '16px 0' }}>
+          <Breadcrumb.Item>Home</Breadcrumb.Item>
+          <Breadcrumb.Item>List</Breadcrumb.Item>
+          <Breadcrumb.Item>App</Breadcrumb.Item>
+        </Breadcrumb>
+        <div className="site-layout-content" style={{ background: colorBgContainer }}>
+          Content isi
+        </div>
+      </Content>
+      <Footer style={{ textAlign: 'center' }}>Ant Design ©2023 Created by Ant UED</Footer>
+    </Layout>
   );
-}
+};
 
 export default App;
