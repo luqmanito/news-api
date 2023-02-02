@@ -54,7 +54,7 @@ const SidebarContent: React.FC = () => {
           dataSource={recentNews}
           renderItem={(item) => (
             <List.Item>
-              {/* <a href="#">{item.title}</a> */}
+              <a href="#">{item.title}</a>
               <Tag className="category-tag" color="blue">
                 {item.category}
               </Tag>
