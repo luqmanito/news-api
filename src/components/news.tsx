@@ -4,8 +4,16 @@ import "../styles/app.css";
 import Paragraph from "antd/es/typography/Paragraph";
 // const { Header, Footer, Sider, Content } = Layout;
 
-const News: React.FC = () => {
+type Props = {
+    author: string;
+    title: string
+    description: string
+    content: string;
+  };
+
+const News = ({ body }: { body: React.ReactNode }) => {
   const [ellipsis, setEllipsis] = useState(true);
+console.log(body);
 
   const readMore = () => {
     setEllipsis(!ellipsis);

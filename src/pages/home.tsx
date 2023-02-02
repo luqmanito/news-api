@@ -1,44 +1,155 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Space, Col, Row } from "antd";
+import { Layout, Space, Col, Row, Button } from "antd";
 import "../styles/app.css";
-import News from "../components/news";
-import { getNews } from "../utils";
-const { Header, Footer, Sider, Content } = Layout;
+import { retrieveNews } from "../utils";
+import Paragraph from "antd/es/typography/Paragraph";
+import moment from "moment";
+import { useNavigate } from "react-router-dom";
+import HeaderContent from "../components/header";
+import FooterContent from "../components/footer";
+import SidebarContent from "../components/sidebar";
+const { Sider, Content } = Layout;
 
 const App: React.FC = () => {
+  const [newsDatas, setNewsDatas] = useState<any[]>([]);
+  const [pageIndex, setPageIndex] = useState(1);
+  const [ellipsis, setEllipsis] = useState(true);
 
+  const getAllNews = async () => {
+    try {
+      const { data } = await retrieveNews();
+      return setNewsDatas(data.articles);
+    } catch (error) {
+      if (error) {
+        console.log("error message: ", error);
+        return error;
+      } else {
+        console.log("unexpected error: ", error);
+        return "An unexpected error occurred";
+      }
+    }
+  };
+  const readMore = () => {
+    setEllipsis(!ellipsis);
+  };
 
+  const pageSize = 5;
+  let page = pageIndex;
+  const totalPages = newsDatas ? newsDatas.length / pageSize : 0;
+  const pageData = newsDatas.slice(page * pageSize - pageSize, page * pageSize);
 
-useEffect(()=>{
-getNews()
-})
+  const nextData = () => {
+    const tempCount = pageIndex + 1;
+    setPageIndex(tempCount);
+  };
+
+  const prevData = () => {
+    const tempCount = pageIndex - 1;
+    setPageIndex(tempCount);
+  };
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getAllNews();
+  }, []);
 
   return (
     <Space direction="vertical" style={{ width: "100%" }} size={[0, 48]}>
       <Layout>
-        <Header style={headerStyle}>
-          <Row>
-            <Col span={6}>
-              <img
-                src="https://res.cloudinary.com/dwxujoxc7/image/upload/c_scale,w_55/v1674226188/project2/Mas_Ito_Frozen_transparan_mduci6.png"
-                alt="logo"
-              />
-            </Col>
-            <Col span={6}>Home</Col>
-            <Col span={6}>Entertainment</Col>
-            <Col span={6}>Shop</Col>
-          </Row>
-        </Header>
+        <HeaderContent />
         <Layout>
           <Sider width={350} style={siderStyle}>
-            Categories
+            <SidebarContent />
           </Sider>
+
           <Content style={contentStyle}>
-            <News/>
-            <News/>
+            <div>
+              {pageData.map((el) => {
+                const convertedDate = moment(el.publishedAt)
+                  .utc()
+                  .format("YYYY-MM-DD");
+
+                const [year, month, day] = convertedDate.split("-");
+                const dateResult = [day, month, year].join("-");
+                return (
+                  <div className="set">
+                    <img
+                    onClick={() => navigate(`/news-detail/:${el.title}`)}
+                      className="newsImg"
+                      src={
+                        el.urlToImage === null || undefined
+                          ? "https://res.cloudinary.com/dwxujoxc7/image/upload/c_scale,w_493/v1675227632/project2/news-intro-template_zsztvr.jpg"
+                          : el.urlToImage
+                      }
+                      onError={({ currentTarget }) => {
+                        currentTarget.onerror = null;
+                        currentTarget.src =
+                          "https://res.cloudinary.com/dwxujoxc7/image/upload/c_scale,w_493/v1675227632/project2/news-intro-template_zsztvr.jpg";
+                      }}
+                      alt="news-img"
+                    />
+                    <Paragraph
+                      onClick={() => navigate(`/news-detail/:${el.title}`)}
+                      className="newsTitle"
+                    >
+                      {el.title}
+                    </Paragraph>
+                    <Row className="newsGenre">
+                      <Col span={12}>
+                        Published at : {dateResult} author By :{el.author}{" "}
+                      </Col>
+                      <Col className="genre" span={12}>
+                        categories : Politics, Insider, Article
+                      </Col>
+                    </Row>
+
+                    <Paragraph
+                      onClick={readMore}
+                      ellipsis={ellipsis}
+                      className="newsContent"
+                    >
+                      {el.description}
+                    </Paragraph>
+                    <Paragraph
+                      onClick={() => navigate(`/news-detail/:${el.title}`)}
+                      className="readMore"
+                    >
+                      Read More
+                    </Paragraph>
+                    <div>
+                      <hr className="separator" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <Content className="wrapper">
+              <Row className="btn-wrap">
+                <Col span={12}>
+                  <Button
+                    onClick={prevData}
+                    className={pageIndex === 1 ? "pagelink2" : "pagelink1"}
+                    disabled={pageIndex === 1 ? true : false}
+                  >
+                    Previous Page
+                  </Button>
+                </Col>
+                <Col span={12}>
+                  <Button
+                    className={
+                      pageIndex === totalPages ? "pagelink2" : "pagelink1"
+                    }
+                    disabled={pageIndex === totalPages ? true : false}
+                    onClick={nextData}
+                  >
+                    Next Page
+                  </Button>
+                </Col>
+              </Row>
+            </Content>
           </Content>
         </Layout>
-        <Footer style={footerStyle}>Footer</Footer>
+        <FooterContent />
       </Layout>
     </Space>
   );
@@ -46,32 +157,19 @@ getNews()
 
 export default App;
 
-const headerStyle: React.CSSProperties = {
-  textAlign: "center",
-  color: "#fff",
-  height: 64,
-  paddingInline: 50,
-  lineHeight: "64px",
-  backgroundColor: "#7dbcea",
-};
-
 const contentStyle: React.CSSProperties = {
   textAlign: "center",
   minHeight: 120,
   lineHeight: "120px",
   color: "#fff",
-  backgroundColor: "#108ee9",
+  backgroundColor: "white",
 };
 
 const siderStyle: React.CSSProperties = {
-  textAlign: "center",
+  textAlign: "left",
+  paddingLeft: "3vw",
   lineHeight: "120px",
-  color: "#fff",
-  backgroundColor: "#3ba0e9",
-};
-
-const footerStyle: React.CSSProperties = {
-  textAlign: "center",
-  color: "#fff",
-  backgroundColor: "#7dbcea",
+  fontSize: "2vw",
+  color: "black",
+  background: "white",
 };
